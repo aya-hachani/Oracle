@@ -170,7 +170,17 @@ ________________________________________________________________________________
 
 
 ```sql
----
+A) Equipe Dev :
+    create user dev1 identified by dev1;
+    create user dev2 identified by dev2;
+
+ B) Equipe Test :
+    create user tester1 identified by tester1;
+    create user tester2 identified by tester2;
+    
+ C) Equipe DevSecOps :   
+    create user devsecops1 identified by dexsecops1;
+    create user devsecops2 identified by dexsecops2;
 ```
   --->  **Une fois qu'un utilisateur est créé, le DBA peut octroyer des privilèges de système spécifiques à cet utilisateur.**
  
@@ -184,7 +194,19 @@ ________________________________________________________________________________
      * Création,lecture, modification de structure et suppression de tables.
 
 ```sql
----
+
+grant
+create procedure,
+create view,
+create sequence,
+create session,
+create any table,
+alter any table,
+SELECT ANY TABLE,
+UPDATE ANY TABLE,
+DROP ANY TABLE 
+to dev1 ;
+
 ```
 
 ¤   **Une fois qu'un utilisateur est créé, le DBA peut octroyer des privilèges de système spécifiques à cet utilisateur.**
@@ -193,7 +215,17 @@ ________________________________________________________________________________
    - **Révoquer tous les privilèges associès à l'utilisateur dev1 :** 
 
 ```sql
----
+revoke
+create procedure,
+create view,
+create sequence,
+create session,
+create any table,
+alter any table,
+SELECT ANY TABLE,
+UPDATE ANY TABLE,
+DROP ANY TABLE 
+from dev1 ;
 ```
 
  
@@ -216,16 +248,41 @@ ________________________________________________________________________________
      C) Le rôle de l'équipe DevSecOps permet d'avoir tous les privilèges avec mode administrateur de la base:  
 
 ```sql
----
+A) Le rôle de l'équipe Dev permet de:
+      create role Dev;
+    grant 
+    create procedure,
+    create view,
+    create session,
+    create any table,
+    alter any table,
+    select any table , 
+    update any table ,
+    drop any table
+        to Dev;
+        
+  
 ```
 ```sql
----
+B) Le rôle de l'équipe Test permet de:
+ create role Test;
+ grant
+ CONNECT,
+ create session,
+ alter any table 
+ to Test;
+ 
+ 
 ```
 ```sql
----
-```
-```sql
----
+C) Le rôle de l'équipe DevSecOps permet d'avoir tous les privilèges avec mode administrateur de la base: 
+ create role DevSecOps;
+ 
+ grant
+ dba 
+ to DevSecOps;
+ 
+
 ```
 
 
@@ -234,24 +291,36 @@ ________________________________________________________________________________
   
 
 ```sql
----
+grant Dev to dev1,dev2;
 ```
 ```sql
----
+grant Test to tester1,tester2;
 ```
 ```sql
----
+grant DevSecOps to devsecops1,devsecops2;
 ```
 
    - **Limiter l'accès pour les testeurs de sorte qu'ils n'accèdent qu'à la table des employés "EMP":** 
   
 
 ```sql
----
+ revoke 
+ alter any table 
+ from
+ Test;
+ 
+ grant
+ alter table EMP 
+ TO
+ Test;
+
+ 
 ```
 
  ```sql
----
+grant Test 
+to
+tester1,tester2;
 ```
  
  
@@ -260,7 +329,7 @@ ________________________________________________________________________________
   
 
  ```sql
----
+
 ```
 
 **Retirer les privilèges attribuées aux admins, ainsi que les utilisateurs qui ont reçu leurs privilèges sur la table EMP par un membre de l'équipe devsecops:**
@@ -286,7 +355,16 @@ ________________________________________________________________________________
 
 
 ```sql 
----
+create profil Dev limit
+Session_per_user            unlimited
+cpu_per_session              10000
+cpu_per_call                 1000
+connect_time                  45
+Logical_reads_per_session   default
+Logical_reads_per_call      1000
+private_sga                 25k
+passsword_life_time         60
+passsword_reuse_time        10;
 ```
 
 
@@ -303,7 +381,16 @@ ________________________________________________________________________________
   * ***Durée de vie en jours du mot de passe:*** ***60***
   * ***Nombre maximal de réutilisations de mot de passe:*** ***10***
 ```sql 
----
+create profil Test limit
+Session_per_user         5
+cpu_per_session          unlimited
+cpu_per_call             3000
+connect_time             45
+Logical_reads_per_session default
+Logical_reads_per_call   1000
+private_sga              25k
+passsword_life_time      60
+passsword_reuse_time     10;
 ```
 
 **Créer un profile de ressources dédié à l'équipe devsecops avec les limitations suivantes:**
@@ -318,11 +405,20 @@ ________________________________________________________________________________
   * ***Nombre maximal de réutilisations de mot de passe:*** ***10***
 
 ```sql 
----
+create profil DevSecOps limit
+Session_per_user           unlimited
+cpu_per_session            unlimited
+cpu_per_call               3000
+connect_time               3600
+Logical_reads_per_session default
+Logical_reads_per_call     5000
+private_sga                80k
+passsword_life_time        60 
+passsword_reuse_time       10 ;
 ```
 
   - **Attribuer à l'utilisateur "dev1", le profile qui lui correspond:** 
 ```sql
----
+alter user dev1 profil Dev;
 ```
 
